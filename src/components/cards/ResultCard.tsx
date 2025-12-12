@@ -173,36 +173,4 @@ const WealthBreakEvenInfo: React.FC<BreakEvenInfoProps> = ({
   );
 };
 
-/**
- * Information sur le point de rentabilité coût mensuel
- */
-const MonthlyBreakEvenInfo: React.FC<BreakEvenInfoProps> = ({
-  isWinner,
-  breakEven,
-}) => {
-  if (!isWinner && breakEven) {
-    return (
-      <p className="text-sm font-semibold flex items-center gap-2">
-        <TrendingUp className="w-4 h-4" />
-        Moins cher que le loyer dès l'année {breakEven.year} (Mois{" "}
-        {breakEven.month})
-      </p>
-    );
-  }
 
-  if (!isWinner) {
-    return (
-      <p className="text-sm font-semibold flex items-center gap-2">
-        <AlertCircle className="w-4 h-4" />
-        Toujours plus cher que le loyer
-      </p>
-    );
-  }
-
-  return (
-    <p className="text-sm font-semibold flex items-center gap-2">
-      <TrendingUp className="w-4 h-4" />
-      Plus économique que la location
-    </p>
-  );
-};

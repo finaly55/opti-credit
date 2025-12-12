@@ -4,7 +4,7 @@
  */
 
 import React from "react";
-import { Settings, Percent, Banknote, TrendingUp } from "lucide-react";
+import { Percent, Banknote, TrendingUp } from "lucide-react";
 import type { SimulationParams } from "../../types";
 import {
   MIN_HOLDING_YEARS,
