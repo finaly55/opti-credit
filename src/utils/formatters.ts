@@ -42,7 +42,7 @@ export const formatPercentWithSign = (
  * @returns Identifiant unique
  */
 export const generateUniqueId = (): string => {
-  return Date.now().toString();
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 };
 
 /**

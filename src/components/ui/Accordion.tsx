@@ -179,18 +179,28 @@ export const AccordionContainer: React.FC<AccordionContainerProps> = ({
 
 /**
  * Hook pour gérer l'état des sections accordion
+ * Avec mode "exclusive" : un seul accordéon ouvert à la fois
  */
 export const useAccordionState = (
-  initialOpen: Record<string, boolean> = {}
+  initialOpen: Record<string, boolean> = {},
+  exclusive: boolean = false
 ) => {
   const [openSections, setOpenSections] =
     useState<Record<string, boolean>>(initialOpen);
 
   const toggleSection = (key: string) => {
-    setOpenSections((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+    setOpenSections((prev) => {
+      if (exclusive) {
+        // Mode exclusif: fermer tous les autres quand on ouvre un nouveau
+        const isCurrentlyOpen = prev[key];
+        return { [key]: !isCurrentlyOpen };
+      }
+      // Mode normal: toggle indépendant
+      return {
+        ...prev,
+        [key]: !prev[key],
+      };
+    });
   };
 
   return { openSections, toggleSection };

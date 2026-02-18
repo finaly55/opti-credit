@@ -7,8 +7,8 @@ import type { Loan, SimulationParams } from "../types";
 /** Clé de stockage localStorage */
 export const STORAGE_KEY = "immo_sim_v23_data" as const;
 
-/** Durée maximale de simulation en mois */
-export const MAX_SIMULATION_MONTHS = 300 as const;
+/** Durée maximale de simulation en mois (30 ans) */
+export const MAX_SIMULATION_MONTHS = 360 as const;
 
 /** Intervalle de monitoring pour les graphiques mensuels */
 export const MONTHS_PER_YEAR = 12 as const;
@@ -22,6 +22,7 @@ export const DEFAULT_PTZ_LOAN: Loan = {
   durationMonths: 240,
   insuranceRate: 0.36,
   deferredMonths: 60,
+  insuranceMode: "initial",
 } as const;
 
 /** Prêt Boost par défaut */
@@ -33,6 +34,7 @@ export const DEFAULT_BOOST_LOAN: Loan = {
   durationMonths: 240,
   insuranceRate: 0.36,
   deferredMonths: 0,
+  insuranceMode: "initial",
 } as const;
 
 /** Prêt Standard par défaut */
@@ -44,6 +46,7 @@ export const DEFAULT_STANDARD_LOAN: Loan = {
   durationMonths: 300,
   insuranceRate: 0.36,
   deferredMonths: 0,
+  insuranceMode: "initial",
 } as const;
 
 /** Paramètres par défaut de la simulation */
@@ -65,8 +68,11 @@ export const DEFAULT_PARAMS: SimulationParams = {
   monthlyExtraCosts: 0,
   yearlyExtraCosts: 0,
   monthlyRent: 902,
+  tenantMonthlyCharges: 30,
   savingsRate: 3.0,
+  savingsTaxRate: 30,
   rentInflation: 1.5,
+  ownerCostInflation: 2.0,
 } as const;
 
 /** Pourcentage de frais de notaire pour l'ancien */
@@ -88,7 +94,7 @@ export const RATE_MAX = 10 as const;
 export const MIN_HOLDING_YEARS = 1 as const;
 
 /** Durée maximum de détention en années */
-export const MAX_HOLDING_YEARS = 25 as const;
+export const MAX_HOLDING_YEARS = 30 as const;
 
 /** Année cible par défaut */
 export const DEFAULT_TARGET_YEAR = 4 as const;

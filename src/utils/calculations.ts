@@ -214,19 +214,30 @@ export const runSimulation = ({
 
   let currentPropertyVal = params.propertyPrice;
   let currentRent = params.monthlyRent;
+  let currentPropertyTax = params.propertyTax;
+  let currentCondoFees = params.condoFees;
+  let currentMaintenanceCost = params.maintenanceCost;
+  let currentTenantCharges = params.tenantMonthlyCharges;
 
-  // Départ à 0€ pour les deux scénarios
-  let tenantSavings = 0;
+  // Le locataire place l'apport + frais de notaire + travaux dès le départ
+  const tenantInitialCapital =
+    params.apportPersonnel + params.notaryFees + totalInitialExpenses;
+  let tenantSavings = tenantInitialCapital;
   let accumulatedTenantInterests = 0;
   let accumulatedOwnerCosts = params.notaryFees + totalInitialExpenses;
   let accumulatedRunningCosts = 0;
   let accumulatedRent = 0;
-  
+
   // Coût initial du propriétaire (dépensé immédiatement)
-  const ownerInitialCost = params.apportPersonnel + params.notaryFees + totalInitialExpenses;
+  const ownerInitialCost =
+    params.apportPersonnel + params.notaryFees + totalInitialExpenses;
 
   // Initialisation de l'état des prêts
   const loansState = initializeLoansState(params.loans);
+
+  // Taux net d'épargne après fiscalité (flat tax)
+  const netSavingsRate =
+    params.savingsRate * (1 - params.savingsTaxRate / 100);
 
   for (let m = 0; m <= MAX_SIMULATION_MONTHS; m++) {
     // Mois 0 : état initial, pas de calcul
@@ -239,11 +250,20 @@ export const runSimulation = ({
       Math.pow(1 + params.propertyAppreciation / 100, 1 / MONTHS_PER_YEAR) - 1;
     currentPropertyVal = currentPropertyVal * (1 + monthlyAppreciationRate);
 
-    // Inflation du loyer chaque année (sauf première année)
+    // Inflation annuelle (sauf première année)
     if (m > 1 && (m - 1) % MONTHS_PER_YEAR === 0) {
       currentRent = currentRent * (1 + params.rentInflation / 100);
+      currentTenantCharges =
+        currentTenantCharges * (1 + params.rentInflation / 100);
+      // Inflation des coûts propriétaire
+      currentPropertyTax =
+        currentPropertyTax * (1 + params.ownerCostInflation / 100);
+      currentCondoFees =
+        currentCondoFees * (1 + params.ownerCostInflation / 100);
+      currentMaintenanceCost =
+        currentMaintenanceCost * (1 + params.ownerCostInflation / 100);
     }
-    accumulatedRent += currentRent;
+    accumulatedRent += currentRent + currentTenantCharges;
 
     // Calcul des remboursements mensuels
     let currentMonthCapitalRepaid = 0;
@@ -251,12 +271,17 @@ export const runSimulation = ({
     let currentMonthInsurance = 0;
 
     loansState.forEach((loan) => {
-      // Assurance mensuelle
+      // Assurance mensuelle : selon le mode (capital initial ou restant dû)
+      const insuranceBase =
+        loan.insuranceMode === "remaining"
+          ? loan.remainingCapital
+          : loan.amount;
       const monthlyIns =
-        (loan.amount * (loan.insuranceRate / 100)) / MONTHS_PER_YEAR;
-      currentMonthInsurance += monthlyIns;
+        (insuranceBase * (loan.insuranceRate / 100)) / MONTHS_PER_YEAR;
 
       if (m <= loan.durationMonths) {
+        currentMonthInsurance += monthlyIns;
+
         if (m <= loan.deferredMonths) {
           // Période de différé : seuls les intérêts intercalaires
           if (loan.rate > 0 && loan.deferredMonths > 0) {
@@ -284,16 +309,20 @@ export const runSimulation = ({
 
     // Dette restante totale
     const debtRemaining = loansState.reduce(
-      (acc, loan) => acc + loan.remainingCapital,
+      (acc, loan) => acc + Math.max(0, loan.remainingCapital),
       0
     );
 
-    // Coûts "à fonds perdus" du mois
+    // IRA (Indemnités de Remboursement Anticipé) : 6 mois d'intérêts, plafondées à 3% du CRD
+    const earlyRepaymentFees = calculateEarlyRepaymentFees(loansState, m);
+
+    // Coûts "à fonds perdus" du mois (avec maintenanceCost et inflation)
     const currentMonthSunkCosts =
       currentMonthInterest +
       currentMonthInsurance +
-      params.propertyTax / MONTHS_PER_YEAR +
-      params.condoFees +
+      currentPropertyTax / MONTHS_PER_YEAR +
+      currentCondoFees +
+      currentMaintenanceCost +
       totalMonthlyExpenses +
       totalYearlyExpenses / MONTHS_PER_YEAR;
 
@@ -305,18 +334,20 @@ export const runSimulation = ({
       currentMonthCapitalRepaid +
       currentMonthInterest +
       currentMonthInsurance +
-      params.propertyTax / MONTHS_PER_YEAR +
-      params.condoFees +
+      currentPropertyTax / MONTHS_PER_YEAR +
+      currentCondoFees +
+      currentMaintenanceCost +
       totalMonthlyExpenses +
       totalYearlyExpenses / MONTHS_PER_YEAR;
 
-    // Sortie de trésorerie mensuelle du locataire
-    const tenantMonthlyCashOut = currentRent;
+    // Sortie de trésorerie mensuelle du locataire (loyer + charges locataire)
+    const tenantMonthlyCashOut = currentRent + currentTenantCharges;
     const cashFlowDifference = ownerMonthlyCashOut - tenantMonthlyCashOut;
 
-    // Intérêts sur l'épargne du locataire
-    const monthlyInterestRate = params.savingsRate / 100 / MONTHS_PER_YEAR;
-    const interestEarnedThisMonth = tenantSavings * monthlyInterestRate;
+    // Intérêts sur l'épargne du locataire (taux net après flat tax)
+    const monthlyInterestRate = netSavingsRate / 100 / MONTHS_PER_YEAR;
+    const interestEarnedThisMonth =
+      tenantSavings > 0 ? tenantSavings * monthlyInterestRate : 0;
 
     if (tenantSavings > 0) {
       accumulatedTenantInterests += interestEarnedThisMonth;
@@ -324,11 +355,16 @@ export const runSimulation = ({
     }
     tenantSavings += cashFlowDifference;
 
-    // Calcul du patrimoine net du propriétaire (moins le coût initial dépensé)
+    // Calcul du patrimoine net du propriétaire
     const sellingCosts =
       (currentPropertyVal * params.agencyFeesPercent) / 100 +
       params.saleDiagnostics;
-    const ownerNetWealth = currentPropertyVal - sellingCosts - debtRemaining - ownerInitialCost;
+    const ownerNetWealth =
+      currentPropertyVal -
+      sellingCosts -
+      earlyRepaymentFees -
+      debtRemaining -
+      ownerInitialCost;
 
     // Calcul du coût mensuel moyen
     const totalAcquisition =
@@ -336,7 +372,8 @@ export const runSimulation = ({
     const totalCostAbsolute =
       totalAcquisition +
       accumulatedRunningCosts +
-      sellingCosts -
+      sellingCosts +
+      earlyRepaymentFees -
       currentPropertyVal;
 
     const monthlyCostOwner = totalCostAbsolute / m;
@@ -354,6 +391,7 @@ export const runSimulation = ({
       propertyValue: Math.round(currentPropertyVal),
       netSalePrice: Math.round(currentPropertyVal - sellingCosts),
       sellingCosts: Math.round(sellingCosts),
+      earlyRepaymentFees: Math.round(earlyRepaymentFees),
       debtRemaining: Math.round(debtRemaining),
       sunkCosts: Math.round(accumulatedOwnerCosts),
     };
@@ -367,6 +405,38 @@ export const runSimulation = ({
   }
 
   return { monthlyData, yearlyData };
+};
+
+/**
+ * Calcule les IRA (Indemnités de Remboursement Anticipé)
+ * Règle légale : minimum entre 6 mois d'intérêts et 3% du capital restant dû
+ * @param loansState - État actuel des prêts
+ * @param currentMonth - Mois courant de la simulation
+ * @returns Montant total des IRA
+ */
+export const calculateEarlyRepaymentFees = (
+  loansState: LoanState[],
+  currentMonth: number
+): number => {
+  let totalIRA = 0;
+
+  loansState.forEach((loan) => {
+    // Pas d'IRA si le prêt est terminé ou à taux zéro
+    if (
+      currentMonth >= loan.durationMonths ||
+      loan.remainingCapital <= 0 ||
+      loan.rate === 0
+    ) {
+      return;
+    }
+
+    const sixMonthsInterest =
+      loan.remainingCapital * (loan.rate / 100 / MONTHS_PER_YEAR) * 6;
+    const threePercentCapital = loan.remainingCapital * 0.03;
+    totalIRA += Math.min(sixMonthsInterest, threePercentCapital);
+  });
+
+  return totalIRA;
 };
 
 /**

@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-import { Building, PiggyBank, TrendingUp, Home } from "lucide-react";
+import { Building, PiggyBank, TrendingUp, Home, ShieldCheck } from "lucide-react";
 import type { SimulationParams } from "../../types";
 import { Card, CardContent, CardTitle } from "../ui/Card";
 
@@ -157,6 +157,19 @@ export const RentScenarioForm: React.FC<RentScenarioFormProps> = ({
               onParamsChange({ ...params, rentInflation: value })
             }
             iconColor="text-blue-500"
+          />
+
+          <CompactInput
+            icon={<ShieldCheck className="w-4 h-4" />}
+            label="Charges locataire"
+            value={params.tenantMonthlyCharges}
+            unit="€"
+            step="10"
+            inputWidth="w-20"
+            onChange={(value) =>
+              onParamsChange({ ...params, tenantMonthlyCharges: value })
+            }
+            iconColor="text-slate-500"
           />
         </div>
 

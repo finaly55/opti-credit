@@ -1,2 +1,3 @@
 # Task
-Pour le mode patrimoine, je veux que tu commence avec 0 euros et que tu comptes les depenses + le patrimoine, donc le proprio aura d'un coup l'apport en moins + les autres dépenses direct (non inlut dans le crédit)
+
+réduit encore :w-full lg:w-1/2 space-y-6 et data-testid="params-section" en largeur

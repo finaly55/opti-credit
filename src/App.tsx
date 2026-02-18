@@ -107,7 +107,6 @@ const RealEstateSimulator: React.FC = () => {
           targetYear={state.targetYear}
           targetData={calculated.targetData}
           params={state.params}
-          totalInitialExpenses={calculated.totalInitialExpenses}
         />
       </div>
     </div>

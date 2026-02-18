@@ -292,6 +292,16 @@ export const ParametersPanel: React.FC<ParametersPanelProps> = ({
           step={100}
         />
         
+        <InputGroup
+          label="Inflation coûts"
+          value={params.ownerCostInflation}
+          onChange={(v) => onParamsChange({ ...params, ownerCostInflation: v })}
+          suffix="%/an"
+          step={0.1}
+          inputWidth="w-14"
+          help="Taxe foncière, copro, entretien"
+        />
+        
         {/* Dépenses personnalisées */}
         {customExpenses.length > 0 && (
           <div className="space-y-1">
@@ -330,6 +340,16 @@ export const ParametersPanel: React.FC<ParametersPanelProps> = ({
         />
         
         <InputGroup
+          label="Charges locataire"
+          value={params.tenantMonthlyCharges}
+          onChange={(v) => onParamsChange({ ...params, tenantMonthlyCharges: v })}
+          suffix="€/mois"
+          step={10}
+          inputWidth="w-20"
+          help="Assurance habitation, charges locatives..."
+        />
+        
+        <InputGroup
           label="Revalorisation"
           value={params.rentInflation}
           onChange={(v) => onParamsChange({ ...params, rentInflation: v })}
@@ -345,10 +365,10 @@ export const ParametersPanel: React.FC<ParametersPanelProps> = ({
         isOpen={openSections.savings}
         toggle={() => toggleSection("savings")}
         icon={PiggyBank}
-        summary={`${params.savingsRate}%`}
+        summary={`${params.savingsRate}% (net ${(params.savingsRate * (1 - params.savingsTaxRate / 100)).toFixed(1)}%)`}
       >
         <InputGroup
-          label="Rendement"
+          label="Rendement brut"
           value={params.savingsRate}
           onChange={(v) => onParamsChange({ ...params, savingsRate: v })}
           suffix="%"
@@ -358,6 +378,18 @@ export const ParametersPanel: React.FC<ParametersPanelProps> = ({
           showSlider
           inputWidth="w-14"
           help="Rémunération de l'épargne constituée"
+        />
+        
+        <InputGroup
+          label="Flat tax (PFU)"
+          value={params.savingsTaxRate}
+          onChange={(v) => onParamsChange({ ...params, savingsTaxRate: v })}
+          suffix="%"
+          step={1}
+          min={0}
+          max={50}
+          inputWidth="w-14"
+          help={`Rendement net : ${(params.savingsRate * (1 - params.savingsTaxRate / 100)).toFixed(2)}%`}
         />
       </AccordionItem>
 

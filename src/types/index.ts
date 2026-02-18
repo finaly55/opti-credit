@@ -18,6 +18,9 @@ export type ActiveTab = "wealth" | "monthly";
 /** Échelle du graphique */
 export type GraphScale = "years" | "months";
 
+/** Mode de calcul de l'assurance emprunteur */
+export type InsuranceMode = "initial" | "remaining";
+
 /**
  * Interface représentant un prêt immobilier
  */
@@ -36,6 +39,8 @@ export interface Loan {
   insuranceRate: number;
   /** Nombre de mois de différé */
   deferredMonths: number;
+  /** Mode de calcul de l'assurance (capital initial ou restant dû) */
+  insuranceMode: InsuranceMode;
 }
 
 /**
@@ -90,10 +95,16 @@ export interface SimulationParams {
   yearlyExtraCosts: number;
   /** Loyer mensuel évité en euros */
   monthlyRent: number;
+  /** Charges locataire mensuelles (assurance habitation, charges locatives...) en euros */
+  tenantMonthlyCharges: number;
   /** Taux d'épargne annuel en pourcentage */
   savingsRate: number;
+  /** Taux d'imposition sur les revenus de l'épargne en pourcentage (flat tax) */
+  savingsTaxRate: number;
   /** Inflation annuelle des loyers en pourcentage */
   rentInflation: number;
+  /** Inflation annuelle des coûts propriétaire (taxe foncière, copro...) en pourcentage */
+  ownerCostInflation: number;
 }
 
 /**
@@ -130,6 +141,8 @@ export interface SimulationDataPoint {
   netSalePrice: number;
   /** Frais de vente en euros */
   sellingCosts: number;
+  /** Indemnités de remboursement anticipé en euros */
+  earlyRepaymentFees: number;
   /** Dette restante en euros */
   debtRemaining: number;
   /** Coûts irrécupérables cumulés en euros */

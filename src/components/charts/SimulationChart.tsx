@@ -276,29 +276,6 @@ export const SimulationChart: React.FC<SimulationChartProps> = ({
                 paddingTop: "8px",
                 fontSize: "12px",
               }}
-              payload={
-                activeTab === "wealth"
-                  ? [
-                      {
-                        value: "Propriétaire",
-                        type: "circle",
-                        color: "#10b981",
-                      },
-                      { value: "Locataire", type: "circle", color: "#ef4444" },
-                    ]
-                  : [
-                      {
-                        value: "Coût Propriétaire",
-                        type: "circle",
-                        color: "#10b981",
-                      },
-                      {
-                        value: "Coût Locataire",
-                        type: "circle",
-                        color: "#ef4444",
-                      },
-                    ]
-              }
             />
 
             {/* Ligne de référence pour l'année cible */}
