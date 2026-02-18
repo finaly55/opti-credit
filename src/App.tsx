@@ -11,12 +11,7 @@ import { Header } from "./components/layout";
 import { Tabs } from "./components/ui";
 import { ResultCard, DetailTable } from "./components/cards";
 import { SimulationChart } from "./components/charts";
-import {
-  AcquisitionForm,
-  SaleParamsForm,
-  ExpensesForm,
-  RentScenarioForm,
-} from "./components/forms";
+import { ParametersPanel } from "./components/forms";
 
 /** Configuration des onglets */
 const TABS: Array<{ id: ActiveTab; label: string; icon: React.ReactNode }> = [
@@ -48,7 +43,7 @@ const RealEstateSimulator: React.FC = () => {
       data-testid="real-estate-simulator"
     >
       {/* Colonne gauche: Paramètres */}
-      <div className="w-full md:w-1/3 space-y-6" data-testid="params-section">
+      <div className="w-full md:w-1/3 space-y-4" data-testid="params-section">
         {/* Header */}
         <Header onReset={handlers.handleReset} />
 
@@ -65,9 +60,13 @@ const RealEstateSimulator: React.FC = () => {
           breakEvenMonthly={calculated.breakEvenMonthly}
         />
 
-        {/* Formulaires empilés - Mode collapsible, tous repliés par défaut */}
-        <AcquisitionForm
+        {/* Panneau de paramètres unifié et compact */}
+        <ParametersPanel
           params={state.params}
+          targetYear={state.targetYear}
+          manualTargetPrice={calculated.manualTargetPrice}
+          customExpenses={state.customExpenses}
+          totalInitialExpenses={calculated.totalInitialExpenses}
           onPriceChange={handlers.handlePropertyPriceChange}
           onApportChange={handlers.handleApportChange}
           onPropertyTypeChange={handlers.handlePropertyTypeChange}
@@ -75,43 +74,17 @@ const RealEstateSimulator: React.FC = () => {
           onNotaryPercentChange={handlers.handleNotaryPercentChange}
           onRateChange={handlers.handleStandardRateChange}
           onPurchaseDateChange={handlers.handlePurchaseDateChange}
-          collapsible
-          defaultOpen={false}
-        />
-
-        <SaleParamsForm
-          params={state.params}
-          targetYear={state.targetYear}
-          manualTargetPrice={calculated.manualTargetPrice}
           onYearChange={handlers.handleYearChange}
-          onPriceChange={handlers.handleTargetPriceChange}
+          onTargetPriceChange={handlers.handleTargetPriceChange}
           onAgencyFeesChange={(percent) =>
             handlers.setParams({ ...state.params, agencyFeesPercent: percent })
           }
           onDiagnosticsChange={(amount) =>
             handlers.setParams({ ...state.params, saleDiagnostics: amount })
           }
-          collapsible
-          defaultOpen={false}
-        />
-
-        <ExpensesForm
-          params={state.params}
-          customExpenses={state.customExpenses}
-          totalInitialExpenses={calculated.totalInitialExpenses}
-          totalAnnualizedCharges={calculated.totalAnnualizedCharges}
           onParamsChange={handlers.setParams}
           onAddExpense={handlers.addCustomExpense}
           onRemoveExpense={handlers.removeCustomExpense}
-          collapsible
-          defaultOpen={false}
-        />
-
-        <RentScenarioForm
-          params={state.params}
-          onParamsChange={handlers.setParams}
-          collapsible
-          defaultOpen={false}
         />
       </div>
 

@@ -215,13 +215,15 @@ export const runSimulation = ({
   let currentPropertyVal = params.propertyPrice;
   let currentRent = params.monthlyRent;
 
-  // Capital initial du locataire (apport + frais qui auraient été dépensés)
-  let tenantSavings =
-    params.apportPersonnel + params.notaryFees + totalInitialExpenses;
+  // Départ à 0€ pour les deux scénarios
+  let tenantSavings = 0;
   let accumulatedTenantInterests = 0;
   let accumulatedOwnerCosts = params.notaryFees + totalInitialExpenses;
   let accumulatedRunningCosts = 0;
   let accumulatedRent = 0;
+  
+  // Coût initial du propriétaire (dépensé immédiatement)
+  const ownerInitialCost = params.apportPersonnel + params.notaryFees + totalInitialExpenses;
 
   // Initialisation de l'état des prêts
   const loansState = initializeLoansState(params.loans);
@@ -322,11 +324,11 @@ export const runSimulation = ({
     }
     tenantSavings += cashFlowDifference;
 
-    // Calcul du patrimoine net du propriétaire
+    // Calcul du patrimoine net du propriétaire (moins le coût initial dépensé)
     const sellingCosts =
       (currentPropertyVal * params.agencyFeesPercent) / 100 +
       params.saleDiagnostics;
-    const ownerNetWealth = currentPropertyVal - sellingCosts - debtRemaining;
+    const ownerNetWealth = currentPropertyVal - sellingCosts - debtRemaining - ownerInitialCost;
 
     // Calcul du coût mensuel moyen
     const totalAcquisition =

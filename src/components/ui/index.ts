@@ -3,3 +3,4 @@ export { InputWithLabel, CompactInput } from './Input';
 export { Button, IconButton } from './Button';
 export { Tabs } from './Tabs';
 export { Collapsible } from './Collapsible';
+export { AccordionItem, InputGroup, AccordionContainer, useAccordionState } from './Accordion';
